@@ -1,0 +1,61 @@
+#hbase
+create 'context_extract',
+{NAME => 'i', VERSIONS => 1, BLOCKCACHE => true,COMPRESSION => 'SNAPPY'},
+{NAME => 'c', VERSIONS => 1, BLOCKCACHE => true,COMPRESSION => 'SNAPPY'},
+{NAME => 'h', VERSIONS => 1,COMPRESSION => 'SNAPPY'}
+
+
+#报表
+#mysql表结构
+CREATE TABLE `report_stream_extract` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `scan` bigint(20) DEFAULT NULL,
+  `filtered` bigint(20) DEFAULT NULL,
+  `extract` bigint(20) DEFAULT NULL,
+  `empty_context` bigint(20) DEFAULT NULL,
+  `no_match_xpath` bigint(20) DEFAULT NULL,
+  `scan_time` varchar(20) DEFAULT NULL,
+  `minute_md5` varchar(255) NOT NULL,
+  PRIMARY KEY (`minute_md5`),
+  KEY `id` (`id`),
+  KEY `minute_md5` (`minute_md5`)
+) ENGINE=InnoDB AUTO_INCREMENT=1287 DEFAULT CHARSET=utf8;
+#报表查询语句
+select ss,sf,se,sm,sn,extract_rate,d,h from(
+select ss,sf,se,sm,sn,format(se/ss, 4) as extract_rate,substring(t,1,11) as d,substring(t,12,13) as h from(
+select sum(scan) as ss,sum(filtered) as sf,sum(extract) as se,sum(empty_context) as sm,sum(no_match_xpath) as sn, substring(scan_time, 1, 13) as t from report_stream_extract group by t) a) b where DATE_FORMAT(d,'%Y-%m-%d') >= '${startTime}'
+and DATE_FORMAT(d,'%Y-%m-%d') <= '${endTime}' and DATE_FORMAT(d,'%Y-%m-%d')
+
+#人工配置表
+CREATE TABLE `stream_extract_xpath_rule`(
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `host` varchar(200) NOT NULL COMMENT '网站host',
+  `xpath` varchar(2000) NOT NULL COMMENT 'xpath规则',
+  `type` tinyint(2) NOT NULL COMMENT '类型:0正规则，1反规则',
+  `status` tinyint(2) NOT NULL DEFAULT '0' COMMENT '状态 0 启用 1 关闭',
+  `create_times` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
+  PRIMARY KEY (`id`),
+  KEY `host` (`host`),
+  KEY `host_status` (`host`,`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+
+#ES使用java客户端创建的索引
+#索引重建,使用elasticsearch-dump
+elasticdump \
+  --input=http://s1.hadoop:9200/hainiu_spark \
+  --output=http://s1.hadoop:9200/hainiu_spark2 \
+  --type=data
+
+
+#集群运行命令，资源配置参数适合虚拟机，注意：集群和本地都要有相关的jar包
+spark-submit --driver-class-path /usr/local/spark/jars/*:/home/hadoop/spark_news_jars/* \
+--executor-memory 1G --num-executors 3 --executor-cores 2 --master yarn --queue hainiu \
+--files /usr/local/hbase/conf/hbase-site.xml \
+/home/hadoop/spark-extract-1.0-qingniu.jar newsextractstreaming
+
+#海牛集群运行命令
+spark-submit --driver-class-path /usr/local/spark/jars/*:/home/qingniu/spark_news_jars/* \
+--executor-memory 2G --num-executors 9 --executor-cores 2 --master yarn --queue hainiu \
+--files /usr/local/hbase/conf/hbase-site.xml \
+/home/qingniu/spark-extract-1.0-qingniu.jar newsextractstreaming
