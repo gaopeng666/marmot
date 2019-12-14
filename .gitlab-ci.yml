@@ -3,11 +3,6 @@ stages:
    - run
    - deploy
 
-image: docker:latest
-
-services:
-- docker:dind
-
 variables:
     MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
     MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
@@ -16,7 +11,7 @@ cache:
   paths:
     - .m2/repository/
 
-.marmot-build-job: &marmot-build-job
+.marmot-build-job: &solo-build-job
   script:
     - mvn clean package
     - mvn install
@@ -32,3 +27,4 @@ marmot-build:
       - mvn install package -Dmaven.test.skip=true
       - cd $CI_PROJECT_DIR/target/
       - ls -ld *
+
