@@ -1,0 +1,29 @@
+stages:
+   - build
+   - run
+   - deploy
+
+variables:
+    MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+    MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository/
+
+.marmot-build-job: &marmot-build-job
+  script:
+    - mvn clean package
+    - mvn install
+    - mvn install package -Dmaven.test.skip=true
+    - ls -ld *
+
+marmot-build:
+   when: manual
+   stage: build
+   script:
+      - mvn clean package
+      - mvn install 
+      - mvn install package -Dmaven.test.skip=true
+      - cd $CI_PROJECT_DIR/target/
+      - ls -ld *
