@@ -11,6 +11,6 @@ public class TestCIBuild {
         list.add("");
         list.add(1.11);
         Object[] array = list.toArray();
-        String s = array[1].toString();
+
     }
 }
