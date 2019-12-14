@@ -9,5 +9,6 @@ public class TestCIBuild {
         ArrayList<Object> list = Lists.newArrayList();
         list.add(1);
         list.add("");
+        list.add(1.11);
     }
 }
