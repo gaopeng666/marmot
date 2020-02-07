@@ -8,7 +8,6 @@ public class TestCIBuild {
     public static void main(String[] args) {
         ArrayList<Object> list = Lists.newArrayList();
         list.add(1);
-        list.add("");
         list.add(1.11);
         Object[] array = list.toArray();
 
