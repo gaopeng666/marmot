@@ -20,19 +20,14 @@ public class Test {
 
         tableEnv.executeSql("create table sink_table");
 
-        tableEnv.createTemporaryView("view_table_from_source",streamSource);
+        tableEnv.createTemporaryView("view_table_from_source", streamSource);
 
-        tableEnv.createTemporaryView("view_table_from_table",table1);
+        tableEnv.createTemporaryView("view_table_from_table", table1);
 
         Table table3 = tableEnv.from("sink_table");
 
 
         table1.executeInsert("sink_table");
-
-
-
-
-
 
 
     }
