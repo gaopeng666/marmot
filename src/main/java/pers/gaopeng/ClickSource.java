@@ -14,14 +14,14 @@ public class ClickSource implements SourceFunction<Event> {
         Random random = new Random();
 
         String[] users = {"Mary", "Alice", "Bob", "Cary"};
-        String[] urls = {"./home", "./cart", "./fav", "./prod?id=100", "./prod?id=10"};
+        String[] urls = {"./home", "./cart", "./fav", "./prod?id=100"};
         Integer id = 1;
 
         while(running){
             String user = users[random.nextInt(users.length)];
             String url = urls[random.nextInt(urls.length)];
-
-            ctx.collect(new Event(user,url,id));
+            Long timestamp = System.currentTimeMillis();
+            ctx.collect(new Event(user,url,id,timestamp));
 
             id += 1;
             Thread.sleep(1000L);
